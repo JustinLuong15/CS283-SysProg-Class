@@ -157,6 +157,11 @@ void reverse_string(char *buff, int buffer_len){
     }
 }
 
+void replace_words(char *buff, int buffer_len, char *target, char *replacement, int buffer_sz) {
+    printf("Not Implemented!");
+    exit(1);
+}
+
 void print_buff(char *buff, int buffer_len){
     printf("Buffer:  [");
     for (int i=0; i<buffer_len; i++){
@@ -210,9 +215,9 @@ int main(int argc, char *argv[]){
     /*
             The purpose of the if statement below is the to
             check if the user provided the required input string
-            to properly execute the program. If true, the program
-            will not execute an action, as it was not provided
-            with a proper input.
+            to properly execute the program. If true (fewer than 
+            3 arguments), the program will not execute an action, 
+            as it was not provided with a proper input.    
     */
     if (argc < 3){
         usage(argv[0]);
@@ -258,6 +263,15 @@ int main(int argc, char *argv[]){
         case 'w':
             printf("Word Print\n----------\n");
             word_print(buff, BUFFER_SZ);
+            break;
+        case 'x':
+            if (argc < 5) {
+                fprintf(stderr, "Error: Replace option requires two additional arguments (find, replace).\n");
+                usage(argv[0]);
+                free(buff);
+                exit(1);
+            }
+            replace_words(buff, BUFFER_SZ, argv[3], argv[4], strlen(argv[4]));
             break;
         default:
             usage(argv[0]);

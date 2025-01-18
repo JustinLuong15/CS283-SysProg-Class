@@ -265,13 +265,14 @@ int main(int argc, char *argv[]){
             word_print(buff, BUFFER_SZ);
             break;
         case 'x':
+            int replace_len;
             if (argc < 5) {
-                fprintf(stderr, "Error: Replace option requires two additional arguments (find, replace).\n");
                 usage(argv[0]);
                 free(buff);
                 exit(1);
             }
-            replace_words(buff, BUFFER_SZ, argv[3], argv[4], strlen(argv[4]));
+            replace_len = setup_buff(buff, argv[4], BUFFER_SZ);
+            replace_words(buff, BUFFER_SZ, argv[3], argv[4], replace_len);
             break;
         default:
             usage(argv[0]);

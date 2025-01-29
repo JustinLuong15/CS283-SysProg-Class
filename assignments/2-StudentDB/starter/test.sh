@@ -10,13 +10,16 @@ setup_file() {
 
 @test "Check if database is empty to start" {
     run ./sdbsc -p
-    [ "$status" -eq 0 ]
+    [ "$status" -eq 0 ] 
     [ "$output" = "Database contains no student records." ]
 }
 
 @test "Add a student 1 to db" {
     run ./sdbsc -a 1      john doe 3.45
-    [ "$status" -eq 0 ]
+    [ "$status" -eq 0 ]|| {
+        echo "Expecting status of 0, got:  $status"
+        return 1
+    }
     [ "${lines[0]}" = "Student 1 added to database." ]
 }
 
@@ -190,7 +193,6 @@ setup_file() {
 #}
 
 @test "Compress db - try 1" {
-    skip
     run ./sdbsc -x
     [ "$status" -eq 0 ]
     [ "${lines[0]}" = "Database successfully compressed!" ] || {
@@ -211,7 +213,6 @@ setup_file() {
 #}
 
 @test "Delete student 99999 in db" {
-    skip
     run ./sdbsc -d 99999
     [ "$status" -eq 0 ]
     [ "${lines[0]}" = "Student 99999 was deleted from database." ] || {
@@ -221,7 +222,6 @@ setup_file() {
 }
 
 @test "Compress db again - try 2" {
-    skip
     run ./sdbsc -x
     [ "$status" -eq 0 ]
     [ "${lines[0]}" = "Database successfully compressed!" ] || {

@@ -45,6 +45,7 @@ typedef struct command{
 #define ERR_MEMORY              -5
 #define ERR_EXEC_CMD            -6
 #define OK_EXIT                 -7
+#define CMD_ERR_EXECUTE "error: command execution failed"
 
 //prototypes
 int alloc_cmd_buff(cmd_buff_t *cmd_buff);
@@ -57,6 +58,7 @@ typedef enum {
     BI_CMD_EXIT,
     BI_CMD_DRAGON,
     BI_CMD_CD,
+    BI_CMD_RC,
     BI_NOT_BI,
     BI_EXECUTED,
     BI_RC,

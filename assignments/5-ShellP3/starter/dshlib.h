@@ -35,7 +35,7 @@ typedef struct command{
 
 typedef struct command_list{
     int num;
-    cmd_buff_t commands[CMD_MAX];
+    command_t commands[CMD_MAX];
 }command_list_t;
 
 //Special character #defines
@@ -71,6 +71,7 @@ typedef enum {
     BI_CMD_EXIT,
     BI_CMD_DRAGON,
     BI_CMD_CD,
+    BI_CMD_RC,
     BI_NOT_BI,
     BI_EXECUTED,
 } Built_In_Cmds;

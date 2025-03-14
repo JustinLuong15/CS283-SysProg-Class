@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <netinet/in.h>
 #include <sys/un.h>
 #include <fcntl.h>
 
@@ -90,10 +91,74 @@
  *   function after cleaning things up.  See the documentation for client_cleanup()
  *      
  */
-int exec_remote_cmd_loop(char *address, int port)
-{
-    return WARN_RDSH_NOT_IMPL;
+int exec_remote_cmd_loop(char *address, int port) {
+    int cli_socket = start_client(address, port);
+    if (cli_socket < 0) {
+        return client_cleanup(-1, NULL, NULL, ERR_RDSH_CLIENT);
+    }
+
+    char *cmd_buff = malloc(RDSH_COMM_BUFF_SZ);
+    char *rsp_buff = malloc(RDSH_COMM_BUFF_SZ);
+    if (!cmd_buff || !rsp_buff) {
+        return client_cleanup(cli_socket, cmd_buff, rsp_buff, ERR_MEMORY);
+    }
+
+    while (1) {
+        printf("%s", SH_PROMPT);
+        if (!fgets(cmd_buff, RDSH_COMM_BUFF_SZ, stdin)) {
+            printf("\n");
+            break;
+        }
+
+        size_t len = strlen(cmd_buff);
+        if (len > 0 && cmd_buff[len-1] == '\n') {
+            cmd_buff[len-1] = '\0';
+            len--;
+        }
+
+        if (len == 0) {
+            continue;
+        }
+
+        if (strcmp(cmd_buff, EXIT_CMD) == 0) {
+            break;
+        }
+
+        cmd_buff[len] = '\0';
+        ssize_t sent = send(cli_socket, cmd_buff, len + 1, 0);
+        if (sent <= 0) {
+            perror("send");
+            break;
+        }
+
+        int is_eof = 0;
+        while (!is_eof) {
+            ssize_t recv_bytes = recv(cli_socket, rsp_buff, RDSH_COMM_BUFF_SZ, 0);
+            if (recv_bytes <= 0) {
+                if (recv_bytes == 0) {
+                    printf(RCMD_SERVER_EXITED);
+                } else {
+                    perror("recv");
+                }
+                is_eof = 1;
+                break;
+            }
+
+            is_eof = (rsp_buff[recv_bytes - 1] == RDSH_EOF_CHAR);
+            if (is_eof) {
+                recv_bytes--;
+                if (recv_bytes > 0) {
+                    printf("%.*s", (int)recv_bytes, rsp_buff);
+                }
+            } else {
+                printf("%.*s", (int)recv_bytes, rsp_buff);
+            }
+        }
+    }
+
+    return client_cleanup(cli_socket, cmd_buff, rsp_buff, OK);
 }
+
 
 /*
  * start_client(server_ip, port)
@@ -118,8 +183,30 @@ int exec_remote_cmd_loop(char *address, int port)
  *          ERR_RDSH_CLIENT:    If socket() or connect() fail
  * 
  */
-int start_client(char *server_ip, int port){
-    return WARN_RDSH_NOT_IMPL;
+int start_client(char *server_ip, int port) {
+    int sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock < 0) {
+        perror("socket");
+        return ERR_RDSH_CLIENT;
+    }
+
+    struct sockaddr_in serv_addr;
+    memset(&serv_addr, 0, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(port);
+    if (inet_pton(AF_INET, server_ip, &serv_addr.sin_addr) <= 0) {
+        perror("inet_pton");
+        close(sock);
+        return ERR_RDSH_CLIENT;
+    }
+
+    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr))) {
+        perror("connect");
+        close(sock);
+        return ERR_RDSH_CLIENT;
+    }
+
+    return sock;
 }
 
 /*

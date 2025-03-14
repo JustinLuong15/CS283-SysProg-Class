@@ -54,7 +54,8 @@ static const char RDSH_EOF_CHAR = 0x04;
 int start_client(char *address, int port);
 int client_cleanup(int cli_socket, char *cmd_buff, char *rsp_buff, int rc);
 int exec_remote_cmd_loop(char *address, int port);
-    
+int start_server(char *ifaces, int port, int is_threaded);
+int stop_server(int svr_socket);    
 
 //server prototypes for rsh_server.c - see documentation for each function to
 //see what they do
